@@ -1,5 +1,6 @@
 import { Map, List } from 'immutable'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface ImmutableMap<T> extends Map<string, any> {
   get<K extends keyof T>(name: K): T[K]
 }

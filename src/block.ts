@@ -11,7 +11,7 @@ import {
 
 export const createRawBlock = (
   blockInfo: RawBlock | RawGenesisBlock
-) =>
+): Block | GenesisBlock =>
   Map({
     ...blockInfo
   })
