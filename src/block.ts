@@ -1,25 +1,25 @@
+import { Map } from 'immutable'
+
 import { genesisHash } from './env'
 import { generateTimestamp, calculateHash } from './utils'
+import {
+  Block,
+  GenesisBlock,
+  RawBlock,
+  RawGenesisBlock
+} from './types'
 
-export interface Block {
-  index: number
-  hash: string
-  prevHash?: string
-  timestamp: number
-  data: string
-}
-
-export type BlockChain = Block[]
-
-export const createRawBlock = (blockInfo: Block) =>
-  Object.freeze({
+export const createRawBlock = (
+  blockInfo: RawBlock | RawGenesisBlock
+) =>
+  Map({
     ...blockInfo
   })
 
 export const createBlock = (
   blockData?: string,
   prevBlock?: Block
-): Block => {
+): Block | GenesisBlock => {
   if (!blockData || !prevBlock) {
     const blockInfo = {
       index: 0,
@@ -31,10 +31,10 @@ export const createBlock = (
     return createRawBlock(blockInfo)
   }
 
-  const index = prevBlock.index + 1,
+  const index = prevBlock.get('index') + 1,
     timestamp = generateTimestamp(),
     data = blockData,
-    prevHash = prevBlock.hash,
+    prevHash = prevBlock.get('hash'),
     hash = calculateHash(index, prevHash, timestamp, data)
 
   return createRawBlock({
