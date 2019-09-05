@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "lib": ["esnext"],
+    "module": "commonjs",
+    "target": "es2019",
+    "outDir": "lib",
+    "sourceMap": true,
+    "isolatedModules": false,
+    "declaration": true,
+    "composite": false,
+    "declarationMap": true,
+    "rootDir": "src"
+  },
+  "exclude": ["node_modules", "lib"],
+  "include": ["src/**/*.ts"]
+}
