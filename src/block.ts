@@ -83,7 +83,15 @@ export const isValidBlockStructure = (
 
 export const isValidGenesisBlock = (
   block: Block | GenesisBlock
-): boolean => createBlock().equals(block)
+): boolean => {
+  const activeBlock = block as GenesisBlock
+  const genesis = createBlock() as GenesisBlock
+  return (
+    activeBlock.get('index') === 0 &&
+    activeBlock.get('hash') === genesis.get('hash') &&
+    activeBlock.get('data') === genesis.get('data')
+  )
+}
 
 export const isValidChain = (
   chain: BlockChain
@@ -104,19 +112,38 @@ export const isValidChain = (
   return true
 }
 
-type ReturnType<T, E = Error> = [T, E | undefined] | T
+type ReturnType<T, E = Error> =
+  | [undefined, E]
+  | [T, undefined]
+
 export interface BlockChainManager {
+  /**
+   * @returns the blockchain in the manager
+   */
   getChain: () => BlockChain
+  /**
+   * @returns the last block on the chain
+   */
   getLatestBlock: () => Block
-  addBlockToChain: (block: Block) => ReturnType<boolean>
-  replaceChain: (chain: BlockChain) => ReturnType<boolean>
+  /**
+   * Add provided block to blockchain
+   * @param block block which will be added to the chain
+   * @returns `[blockchain, err]` if successful, the blockchain with the new block or an error object
+   */
+  addBlockToChain: (block: Block) => ReturnType<BlockChain>
+  /**
+   * replaces chain with one from peer if conditions are met
+   * @param chain blockchain from peer
+   * @returns true or false as to whether the replacement was successful
+   */
+  replaceChain: (chain: BlockChain) => boolean
 }
 
-export const generateBlockChainManager = (): BlockChainManager => {
-  // ToDo: Add test for BlockManager
-  const genesisBlock = createBlock()
-
-  let blockChain = List([genesisBlock])
+export const generateBlockChainManager = (
+  chain?: BlockChain
+): BlockChainManager => {
+  let blockChain: BlockChain =
+    chain || List([createBlock()])
 
   // getters
   const getChain = (): BlockChain => blockChain
@@ -125,17 +152,15 @@ export const generateBlockChainManager = (): BlockChainManager => {
 
   const addBlockToChain = (
     block: Block
-  ): ReturnType<boolean> => {
+  ): ReturnType<BlockChain> => {
     if (!isValidNewBlock(block, getLatestBlock()))
-      return [false, new Error('Invalid block')]
+      return [undefined, new Error('Invalid block')]
 
     blockChain = blockChain.push(block)
-    return [true, undefined]
+    return [blockChain, undefined]
   }
 
-  const replaceChain = (
-    chain: BlockChain
-  ): ReturnType<boolean> => {
+  const replaceChain = (chain: BlockChain): boolean => {
     if (
       isValidChain(chain) &&
       chain.size > blockChain.size

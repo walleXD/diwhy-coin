@@ -6,7 +6,8 @@ import {
   createBlock,
   isValidNewBlock,
   isValidBlockStructure,
-  isValidChain
+  isValidChain,
+  generateBlockChainManager
 } from '../block'
 import { Block, GenesisBlock } from '../types'
 import { generateTimestamp } from '../utils'
@@ -175,6 +176,64 @@ describe('block', () => {
 
         expect(isValidChain(chain)).toBe(false)
       })
+    })
+  })
+
+  describe('manager', () => {
+    const genesisBlock = createBlock() as Block
+    const block1 = createBlock(
+      'block 1',
+      genesisBlock
+    ) as Block
+    const blockChain = List([genesisBlock, block1])
+    const chainManager = generateBlockChainManager(
+      blockChain
+    )
+
+    test('init with existing chain', () => {
+      expect(chainManager.getChain()).toEqual(blockChain)
+    })
+
+    test('get latest block', () => {
+      expect(chainManager.getLatestBlock()).toEqual(block1)
+    })
+
+    test('adding new block to chain', () => {
+      const block2 = createBlock('block2', block1) as Block
+
+      chainManager.addBlockToChain(block2)
+
+      expect(chainManager.getLatestBlock()).toEqual(block2)
+    })
+
+    test('replace chain', () => {
+      const newChainManager = generateBlockChainManager()
+
+      for (let i = 0; i < 10; i++) {
+        const block = createBlock(
+          `block ${i}`,
+          newChainManager.getLatestBlock()
+        ) as Block
+        newChainManager.addBlockToChain(block)
+      }
+
+      const success = chainManager.replaceChain(
+        newChainManager.getChain()
+      )
+
+      expect(success).toEqual(true)
+      expect(chainManager.getChain()).toEqual(
+        newChainManager.getChain()
+      )
+    })
+
+    test('replace fails w/ shorter chain', () => {
+      const newChainManager = generateBlockChainManager(),
+        newChain = newChainManager.getChain(),
+        success = chainManager.replaceChain(newChain)
+
+      expect(success).toEqual(false)
+      expect(newChain).not.toEqual(chainManager.getChain())
     })
   })
 })
