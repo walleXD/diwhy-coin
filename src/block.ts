@@ -1,4 +1,4 @@
-import { Map } from 'immutable'
+import { Map, List } from 'immutable'
 
 import { genesisHash } from './env'
 import {
@@ -95,11 +95,62 @@ export const isValidChain = (
   for (let i = 1; i < chain.size; i++) {
     if (
       !isValidNewBlock(
-        chain.get(1) as Block,
+        chain.get(i) as Block,
         chain.get(i - 1) as Block
       )
     )
       return false
   }
   return true
+}
+
+type ReturnType<T, E = Error> = [T, E | undefined] | T
+export interface BlockChainManager {
+  getChain: () => BlockChain
+  getLatestBlock: () => Block
+  addBlockToChain: (block: Block) => ReturnType<boolean>
+  replaceChain: (chain: BlockChain) => ReturnType<boolean>
+}
+
+export const generateBlockChainManager = (): BlockChainManager => {
+  // ToDo: Add test for BlockManager
+  const genesisBlock = createBlock()
+
+  let blockChain = List([genesisBlock])
+
+  // getters
+  const getChain = (): BlockChain => blockChain
+  const getLatestBlock = (): Block =>
+    blockChain.get(-1) as Block
+
+  const addBlockToChain = (
+    block: Block
+  ): ReturnType<boolean> => {
+    if (!isValidNewBlock(block, getLatestBlock()))
+      return [false, new Error('Invalid block')]
+
+    blockChain = blockChain.push(block)
+    return [true, undefined]
+  }
+
+  const replaceChain = (
+    chain: BlockChain
+  ): ReturnType<boolean> => {
+    if (
+      isValidChain(chain) &&
+      chain.size > blockChain.size
+    ) {
+      blockChain = chain
+      // ToDo: Add broadcasting mechanism once chain is replaced
+      return true
+    }
+    return false
+  }
+
+  return Object.freeze({
+    getChain,
+    getLatestBlock,
+    addBlockToChain,
+    replaceChain
+  })
 }
