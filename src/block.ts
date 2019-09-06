@@ -14,6 +14,11 @@ import {
   BlockChain
 } from './types'
 
+/**
+ * creates a block from provided info
+ * @param blockInfo info used to generate a block
+ * @returns `Block`
+ */
 export const createRawBlock = (
   blockInfo: RawBlock | RawGenesisBlock
 ): Block | GenesisBlock =>
@@ -21,6 +26,12 @@ export const createRawBlock = (
     ...blockInfo
   })
 
+/**
+ * create a block from data & the last block in chain
+ * @param blockData data to be stored in block
+ * @param prevBlock last block in the chain
+ * @returns `Block`
+ */
 export const createBlock = (
   blockData?: string,
   prevBlock?: Block
@@ -51,6 +62,12 @@ export const createBlock = (
   })
 }
 
+/**
+ * check whether the newly generated block is valid
+ * @param newBlock block to check
+ * @param prevBlock block to check w/
+ * @returns `boolean`
+ */
 export const isValidNewBlock = (
   newBlock: Block,
   prevBlock: Block
@@ -72,6 +89,11 @@ export const isValidNewBlock = (
   else return true
 }
 
+/**
+ * check whether the block contains all necessary info
+ * @param block to check
+ * @returns `boolean`
+ */
 export const isValidBlockStructure = (
   block: Block
 ): boolean =>
@@ -81,6 +103,11 @@ export const isValidBlockStructure = (
   typeof block.get('timestamp') === 'number' &&
   typeof block.get('data') === 'string'
 
+/**
+ * check whether given block is a valid genesis block
+ * @param block to check
+ * @returns `boolean`
+ */
 export const isValidGenesisBlock = (
   block: Block | GenesisBlock
 ): boolean => {
@@ -93,6 +120,11 @@ export const isValidGenesisBlock = (
   )
 }
 
+/**
+ * check whether the blockchain is valid
+ * @param chain to check
+ * @return `boolean`
+ */
 export const isValidChain = (
   chain: BlockChain
 ): boolean => {
@@ -139,9 +171,15 @@ export interface BlockChainManager {
   replaceChain: (chain: BlockChain) => boolean
 }
 
+/**
+ * generates a manager object to store and manage a blockchain
+ * @param chain to build the manager with, if provided
+ * @returns `BlockChainManager`
+ */
 export const generateBlockChainManager = (
   chain?: BlockChain
 ): BlockChainManager => {
+  // store
   let blockChain: BlockChain =
     chain || List([createBlock()])
 
@@ -150,6 +188,7 @@ export const generateBlockChainManager = (
   const getLatestBlock = (): Block =>
     blockChain.get(-1) as Block
 
+  // actions
   const addBlockToChain = (
     block: Block
   ): ReturnType<BlockChain> => {

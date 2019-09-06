@@ -5,6 +5,7 @@ export interface ImmutableMap<T> extends Map<string, any> {
   get<K extends keyof T>(name: K): T[K]
 }
 
+/** structure of a genesis block */
 export interface RawGenesisBlock {
   index: number
   hash: string
@@ -12,10 +13,12 @@ export interface RawGenesisBlock {
   data: string
 }
 
+/** structure of a block */
 export interface RawBlock extends RawGenesisBlock {
   prevHash: string
 }
 
+// immutable Map of blocks
 export type GenesisBlock = ImmutableMap<RawGenesisBlock>
 export type Block = ImmutableMap<RawBlock>
 

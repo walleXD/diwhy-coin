@@ -179,7 +179,7 @@ describe('block', () => {
     })
   })
 
-  describe('manager', () => {
+  describe('chain manager', () => {
     const genesisBlock = createBlock() as Block
     const block1 = createBlock(
       'block 1',
