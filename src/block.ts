@@ -1,12 +1,17 @@
 import { Map } from 'immutable'
 
 import { genesisHash } from './env'
-import { generateTimestamp, calculateHash } from './utils'
+import {
+  generateTimestamp,
+  calculateHash,
+  calculateHashFromBlock
+} from './utils'
 import {
   Block,
   GenesisBlock,
   RawBlock,
-  RawGenesisBlock
+  RawGenesisBlock,
+  BlockChain
 } from './types'
 
 export const createRawBlock = (
@@ -44,4 +49,57 @@ export const createBlock = (
     timestamp,
     data
   })
+}
+
+export const isValidNewBlock = (
+  newBlock: Block,
+  prevBlock: Block
+): boolean => {
+  if (
+    newBlock.get('index') - 1 !==
+    prevBlock.get('index')
+  ) {
+    return false
+  } else if (
+    newBlock.get('prevHash') !== prevBlock.get('hash')
+  )
+    return false
+  else if (
+    calculateHashFromBlock(newBlock) !==
+    newBlock.get('hash')
+  )
+    return false
+  else return true
+}
+
+export const isValidBlockStructure = (
+  block: Block
+): boolean =>
+  typeof block.get('index') === 'number' &&
+  typeof block.get('hash') === 'string' &&
+  typeof block.get('prevHash') === 'string' &&
+  typeof block.get('timestamp') === 'number' &&
+  typeof block.get('data') === 'string'
+
+export const isValidGenesisBlock = (
+  block: Block | GenesisBlock
+): boolean => createBlock().equals(block)
+
+export const isValidChain = (
+  chain: BlockChain
+): boolean => {
+  if (!isValidGenesisBlock(chain.get(0) as GenesisBlock))
+    return false
+
+  // ToDo: rework w/ map & reduce op on chain
+  for (let i = 1; i < chain.size; i++) {
+    if (
+      !isValidNewBlock(
+        chain.get(1) as Block,
+        chain.get(i - 1) as Block
+      )
+    )
+      return false
+  }
+  return true
 }

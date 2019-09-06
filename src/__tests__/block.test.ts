@@ -1,6 +1,15 @@
 import '../env'
-import { createRawBlock, createBlock } from '../block'
+import { Map, List } from 'immutable'
+
+import {
+  createRawBlock,
+  createBlock,
+  isValidNewBlock,
+  isValidBlockStructure,
+  isValidChain
+} from '../block'
 import { Block, GenesisBlock } from '../types'
+import { generateTimestamp } from '../utils'
 
 describe('block', () => {
   describe('creation', () => {
@@ -50,5 +59,122 @@ describe('block', () => {
     })
   })
 
-  describe('validity', () => {})
+  describe('validation', () => {
+    const blockInfo = {
+      index: 0,
+      hash: 'asKBHKASUHD&*HSIDUA*SD',
+      prevHash: 'JHBGAS*&DHBASI&HD*^HABUID@',
+      timestamp: generateTimestamp(),
+      data: 'YOYOYOOOOOOO'
+    }
+    const genesisBlock = createBlock() as Block
+
+    describe('new block', () => {
+      test('index check', () => {
+        const block = Map({
+          ...blockInfo
+        })
+
+        expect(isValidNewBlock(block, genesisBlock)).toBe(
+          false
+        )
+      })
+
+      test('prev hash check', () => {
+        const block = Map({
+          ...blockInfo,
+          index: 1
+        })
+
+        expect(isValidNewBlock(block, genesisBlock)).toBe(
+          false
+        )
+      })
+
+      test('hash check', () => {
+        const block = Map({
+          ...blockInfo,
+          index: 1,
+          prevHash: genesisBlock.get('hash')
+        })
+
+        expect(isValidNewBlock(block, genesisBlock)).toBe(
+          false
+        )
+      })
+    })
+
+    describe('block structure', () => {
+      test('index type', () => {
+        const block = Map({
+          ...blockInfo,
+          index: '1'
+        })
+
+        expect(isValidBlockStructure(block)).toBe(false)
+      })
+
+      test('hash type', () => {
+        const block = Map({
+          ...blockInfo,
+          hash: 12837291837182973
+        })
+
+        expect(isValidBlockStructure(block)).toBe(false)
+      })
+
+      test('prevHash type', () => {
+        const block = Map({
+          ...blockInfo,
+          prevHash: 12837291837182973
+        })
+
+        expect(isValidBlockStructure(block)).toBe(false)
+      })
+
+      test('timestamp type', () => {
+        const block = Map({
+          ...blockInfo,
+          timestamp: 'Hello'
+        })
+
+        expect(isValidBlockStructure(block)).toBe(false)
+      })
+
+      test('data type', () => {
+        const block = Map({
+          ...blockInfo,
+          data: 12837291837182973
+        })
+
+        expect(isValidBlockStructure(block)).toBe(false)
+      })
+    })
+
+    describe('chain', () => {
+      test('genesis block', () => {
+        const chain = List([Map(blockInfo)])
+
+        expect(isValidChain(chain)).toBe(false)
+      })
+
+      test('all non-genesis blocks', () => {
+        const block1 = createBlock(
+          'block 1',
+          genesisBlock
+        ) as Block
+        const block2 = createBlock('block 2', block1)
+        const block3 = Map(blockInfo)
+
+        const chain = List([
+          createBlock(),
+          block1,
+          block2,
+          block3
+        ])
+
+        expect(isValidChain(chain)).toBe(false)
+      })
+    })
+  })
 })
