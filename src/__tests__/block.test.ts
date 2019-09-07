@@ -23,7 +23,7 @@ describe('block', () => {
     beforeAll(() => {
       data = 'A new Block'
       genesisBlock = createBlock()
-      difficulty = 2
+      difficulty = 3
     })
 
     test('raw block', () => {
@@ -84,13 +84,13 @@ describe('block', () => {
         2
       )
 
-      expect(newBlock.get('hash').substring(0, 2)).toEqual(
-        Array(3).join('0')
-      )
+      expect(
+        newBlock.get('hash').substring(0, difficulty)
+      ).toEqual(Array(difficulty + 1).join('0'))
 
       expect(
-        newBlockRec.get('hash').substring(0, difficulty)
-      ).toEqual(Array(difficulty + 1).join('0'))
+        newBlockRec.get('hash').substring(0, 2)
+      ).toEqual(Array(3).join('0'))
     })
   })
 
