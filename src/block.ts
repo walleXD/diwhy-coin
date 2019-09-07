@@ -66,6 +66,46 @@ export const createBlock = (
   })
 }
 
+export const mineBlock = (
+  blockData: string,
+  prevBlock: Block,
+  difficulty: number,
+  nonce = 0
+): Block => {
+  let newBlock: Block
+  let _nonce = nonce || 0
+
+  do {
+    newBlock = createBlock(blockData, prevBlock, _nonce++)
+  } while (
+    newBlock.get('hash').substring(0, difficulty) !==
+    Array(difficulty + 1).join('0')
+  )
+
+  return newBlock
+}
+
+export const mineBlockRec = (
+  blockData: string,
+  prevBlock: Block,
+  difficulty: number,
+  nonce = 0
+): Block => {
+  const newBlock = createBlock(blockData, prevBlock, nonce)
+
+  if (
+    newBlock.get('hash').substring(0, difficulty) !==
+    Array(difficulty + 1).join('0')
+  )
+    return mineBlockRec(
+      blockData,
+      prevBlock,
+      difficulty,
+      nonce + 1
+    )
+  else return newBlock
+}
+
 /**
  * check whether the newly generated block is valid
  * @param newBlock block to check

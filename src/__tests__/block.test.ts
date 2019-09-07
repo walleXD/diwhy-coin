@@ -7,13 +7,25 @@ import {
   isValidNewBlock,
   isValidBlockStructure,
   isValidChain,
-  generateBlockChainManager
+  generateBlockChainManager,
+  mineBlock,
+  mineBlockRec
 } from '../block'
 import { Block } from '../types'
 import { generateTimestamp } from '../utils'
 
 describe('block', () => {
   describe('creation', () => {
+    let data: string,
+      genesisBlock: Block,
+      difficulty: number
+
+    beforeAll(() => {
+      data = 'A new Block'
+      genesisBlock = createBlock()
+      difficulty = 2
+    })
+
     test('raw block', () => {
       const timestamp = new Date().getTime() / 1000,
         hash = 'hhkk7tiuabnsd9yhu',
@@ -57,6 +69,28 @@ describe('block', () => {
 
       expect(newBlock.get('index')).not.toBe(0)
       expect(newBlock.get('data')).toEqual(data)
+    })
+
+    test('mine block', () => {
+      const newBlock = mineBlock(
+        data,
+        genesisBlock,
+        difficulty
+      )
+
+      const newBlockRec = mineBlockRec(
+        data,
+        genesisBlock,
+        2
+      )
+
+      expect(newBlock.get('hash').substring(0, 2)).toEqual(
+        Array(3).join('0')
+      )
+
+      expect(
+        newBlockRec.get('hash').substring(0, difficulty)
+      ).toEqual(Array(difficulty + 1).join('0'))
     })
   })
 
@@ -208,6 +242,22 @@ describe('block', () => {
       expect(success).toBeTruthy()
       expect(err).toBeFalsy()
       expect(chainManager.getLatestBlock()).toEqual(block2)
+    })
+
+    test('do not add bad new block to chain', () => {
+      const [success, err] = chainManager.addBlockToChain(
+        createRawBlock({
+          index: 0,
+          hash: 'asKBHKASUHD&*HSIDUA*SD',
+          prevHash: 'JHBGAS*&DHBASI&HD*^HABUID@',
+          timestamp: generateTimestamp(),
+          data: 'YOYOYOOOOOOO',
+          nonce: 0
+        })
+      )
+
+      expect(success).toBeFalsy()
+      expect(err).toBeTruthy()
     })
 
     test('replace chain', () => {
