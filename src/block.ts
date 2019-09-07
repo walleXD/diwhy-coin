@@ -6,13 +6,7 @@ import {
   calculateHash,
   calculateHashFromBlock
 } from './utils'
-import {
-  Block,
-  GenesisBlock,
-  RawBlock,
-  RawGenesisBlock,
-  BlockChain
-} from './types'
+import { Block, RawBlock, BlockChain } from './types'
 
 /**
  * creates a block from provided info
@@ -20,8 +14,8 @@ import {
  * @returns `Block`
  */
 export const createRawBlock = (
-  blockInfo: RawBlock | RawGenesisBlock
-): Block | GenesisBlock =>
+  blockInfo: RawBlock
+): Block =>
   Map({
     ...blockInfo
   })
@@ -34,14 +28,17 @@ export const createRawBlock = (
  */
 export const createBlock = (
   blockData?: string,
-  prevBlock?: Block
-): Block | GenesisBlock => {
-  if (!blockData || !prevBlock) {
+  prevBlock?: Block,
+  nonce?: number
+): Block => {
+  if (!blockData || !prevBlock || nonce === undefined) {
     const blockInfo = {
       index: 0,
       hash: genesisHash,
       timestamp: generateTimestamp(),
-      data: 'This is the genesis'
+      data: 'This is the genesis',
+      prevHash: '',
+      nonce: 0
     }
 
     return createRawBlock(blockInfo)
@@ -51,14 +48,21 @@ export const createBlock = (
     timestamp = generateTimestamp(),
     data = blockData,
     prevHash = prevBlock.get('hash'),
-    hash = calculateHash(index, prevHash, timestamp, data)
+    hash = calculateHash(
+      index,
+      prevHash,
+      timestamp,
+      data,
+      nonce
+    )
 
   return createRawBlock({
     index,
     hash,
     prevHash,
     timestamp,
-    data
+    data,
+    nonce
   })
 }
 
@@ -109,10 +113,10 @@ export const isValidBlockStructure = (
  * @returns `boolean`
  */
 export const isValidGenesisBlock = (
-  block: Block | GenesisBlock
+  block: Block
 ): boolean => {
-  const activeBlock = block as GenesisBlock
-  const genesis = createBlock() as GenesisBlock
+  const activeBlock = block
+  const genesis = createBlock()
   return (
     activeBlock.get('index') === 0 &&
     activeBlock.get('hash') === genesis.get('hash') &&
@@ -128,7 +132,7 @@ export const isValidGenesisBlock = (
 export const isValidChain = (
   chain: BlockChain
 ): boolean => {
-  if (!isValidGenesisBlock(chain.get(0) as GenesisBlock))
+  if (!isValidGenesisBlock(chain.get(0) as Block))
     return false
 
   // ToDo: rework w/ map & reduce op on chain

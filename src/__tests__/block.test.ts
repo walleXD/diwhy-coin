@@ -9,7 +9,7 @@ import {
   isValidChain,
   generateBlockChainManager
 } from '../block'
-import { Block, GenesisBlock } from '../types'
+import { Block } from '../types'
 import { generateTimestamp } from '../utils'
 
 describe('block', () => {
@@ -19,14 +19,16 @@ describe('block', () => {
         hash = 'hhkk7tiuabnsd9yhu',
         prevHash = 'jkansd7ahsndiuansd7n',
         data = 'Hello World!',
-        index = 10
+        index = 10,
+        nonce = 0
 
       const block = createRawBlock({
         index,
         hash,
         prevHash,
         timestamp,
-        data
+        data,
+        nonce
       }) as Block
 
       expect(block.get('index')).toEqual(index)
@@ -34,10 +36,11 @@ describe('block', () => {
       expect(block.get('prevHash')).toEqual(prevHash)
       expect(block.get('timestamp')).toEqual(timestamp)
       expect(block.get('data')).toEqual(data)
+      expect(block.get('nonce')).toEqual(nonce)
     })
 
     test('genesis block', () => {
-      const block = createBlock() as GenesisBlock
+      const block = createBlock()
 
       /** has index 0 */
       expect(block.get('index')).toEqual(0)
@@ -45,11 +48,8 @@ describe('block', () => {
 
     test('regular block', () => {
       const data = 'A new Block'
-      const genesisBlock = createBlock() as Block
-      const newBlock = createBlock(
-        data,
-        genesisBlock
-      ) as Block
+      const genesisBlock = createBlock()
+      const newBlock = createBlock(data, genesisBlock, 3)
 
       expect(newBlock.get('hash')).toBeTruthy()
       expect(newBlock.get('prevHash')).toBeTruthy()
@@ -199,10 +199,14 @@ describe('block', () => {
     })
 
     test('adding new block to chain', () => {
-      const block2 = createBlock('block2', block1) as Block
+      const block2 = createBlock('block2', block1, 0)
 
-      chainManager.addBlockToChain(block2)
+      const [success, err] = chainManager.addBlockToChain(
+        block2
+      )
 
+      expect(success).toBeTruthy()
+      expect(err).toBeFalsy()
       expect(chainManager.getLatestBlock()).toEqual(block2)
     })
 
@@ -212,8 +216,9 @@ describe('block', () => {
       for (let i = 0; i < 10; i++) {
         const block = createBlock(
           `block ${i}`,
-          newChainManager.getLatestBlock()
-        ) as Block
+          newChainManager.getLatestBlock(),
+          0
+        )
         newChainManager.addBlockToChain(block)
       }
 

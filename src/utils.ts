@@ -20,11 +20,14 @@ export const calculateHash = (
   index: number,
   prevHash: string,
   timestamp: number,
-  data: string
+  data: string,
+  nonce: number
 ): string =>
   createHash('sha512')
-    .update(`${index}${prevHash}${timestamp}${data}`)
-    .digest('hex')
+    .update(
+      `${index}${prevHash}${timestamp}${data}${nonce}`
+    )
+    .digest('base64')
 
 /**
  * calculate hash from a given block
@@ -38,5 +41,6 @@ export const calculateHashFromBlock = (
     block.get('index'),
     block.get('prevHash'),
     block.get('timestamp'),
-    block.get('data')
+    block.get('data'),
+    block.get('nonce')
   )
